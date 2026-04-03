@@ -6,6 +6,7 @@ from quant.quantizer import UniformAffineQuantizer, GroupAffineQuantizer, PerTok
 
 from models.quant import Phi
 import numpy as np
+import copy
 
 # For conv, linear operations
 class QuantModule(nn.Module):
@@ -89,33 +90,34 @@ class QuantModule(nn.Module):
         self.use_act_quant = act_quant
 
 
-# For matmul operations
 class QuantMatMul(nn.Module):
     def __init__(self, mode: str = 'matmul1', matmul_params: dict = {}):
-        super(QuantMatMul, self).__init__()
+        super().__init__()
         self.mode = mode
         self.disable_act_quant = False
 
-        # de-activate the quantized forward default
         self.use_A_quant = False
         self.use_B_quant = False
-        
+
+        def build_params(**overrides):
+            params = copy.deepcopy(matmul_params)
+            params.update(overrides)
+            return params
+
         if self.mode == 'matmul1':
             if matmul_params['n_bits'] >= 6:
-                self.A_quantizer = PerTokenQuantizer(**matmul_params)
-                self.B_quantizer = PerTokenQuantizer(**matmul_params)
+                self.A_quantizer = PerTokenQuantizer(**build_params())
+                self.B_quantizer = PerTokenQuantizer(**build_params())
             else:
-                matmul_params['dim'] = (0, 1, 2)
-                self.A_quantizer = PerGroupQuantizer(**matmul_params)
-                matmul_params['dim'] = (0, 1, 3)
-                self.B_quantizer = PerGroupQuantizer(**matmul_params)
-        elif self.mode == 'matmul2':
-            self.A_quantizer = PerTokenLog2Quantizer(**matmul_params)
-            matmul_params['dim'] = (0, 1)
-            self.B_quantizer = Shift_and_Sum_Quantizer(**matmul_params)
-        
-        self.theta = 1.0
+                self.A_quantizer = PerGroupQuantizer(**build_params(dim=(0, 1, 2)))
+                self.B_quantizer = PerGroupQuantizer(**build_params(dim=(0, 1, 3)))
 
+        elif self.mode == 'matmul2':
+            self.A_quantizer = PerTokenLog2Quantizer(**build_params())
+            self.B_quantizer = Shift_and_Sum_Quantizer(**build_params(dim=(0, 1)))
+
+        self.theta = 1.0
+        
         self.A_patch_nums = []
         self.B_patch_nums = []
         self.init_patch_res = False
