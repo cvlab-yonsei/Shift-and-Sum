@@ -1,7 +1,7 @@
 # Pytorch Implementation of Shift-and-Sum Quantization
 This repository contains the official implementation of the paper "Shift-and-Sum Quantization for Visual Autoregressive Models" presented at **ICLR 2026**.
 
-For detailed information, please visit the [project website](https://cvlab.yonsei.ac.kr/projects/Shift-and-Sum/) or read the [paper](https://iclr.cc/virtual/2026/poster/10010803).
+For detailed information, please visit the [project website](https://cvlab.yonsei.ac.kr/projects/Shift-and-Sum/) or read the [paper](https://openreview.net/forum?id=DAZvMAlZRp).
 
 ## Getting started
 
